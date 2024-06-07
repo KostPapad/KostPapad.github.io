@@ -1,0 +1,10 @@
+# Step 1: Initialize a new git repository and add your HTML file
+git init
+git add index.html
+git commit -m "Initial commit"
+
+# Step 2: Link to your GitHub repository
+git remote add origin https://github.com/username/username.github.io.git
+
+# Step 3: Push your changes to GitHub
+git push -u origin main
