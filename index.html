@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+            overflow-x: hidden;
         }
         .header {
             background-color: #2c3e50;
@@ -30,6 +31,13 @@
         }
         .section {
             margin: 20px 0;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.5s ease-out;
+        }
+        .section.in-view {
+            opacity: 1;
+            transform: translateY(0);
         }
         .section h2 {
             color: #2c3e50;
@@ -105,5 +113,23 @@
             <p>LinkedIn: <a href="https://www.linkedin.com/in/kostas-papadimitriou-30985119">Kostas Papadimitriou</a></p>
         </section>
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let sections = document.querySelectorAll('.section');
+            let observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                    } else {
+                        entry.target.classList.remove('in-view');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
 </body>
 </html>
