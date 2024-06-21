@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Running Platform Game</title>
+    <title>Interactive Timeline Adventure</title>
     <style>
         body, html {
             margin: 0;
@@ -11,31 +11,47 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #87CEEB;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
             background: #87CEEB;
         }
-        .cv-content {
+        .cv-popup {
             position: absolute;
-            top: 10px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
+            width: 80%;
             background: rgba(255, 255, 255, 0.9);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             display: none;
+            z-index: 10;
+        }
+        .close-btn {
+            background: #ff5555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            float: right;
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <div id="cvContent" class="cv-content"></div>
+    <div id="cvPopup" class="cv-popup">
+        <button class="close-btn" onclick="closePopup()">Close</button>
+        <div id="cvContent"></div>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const cvPopup = document.getElementById('cvPopup');
         const cvContent = document.getElementById('cvContent');
 
         canvas.width = window.innerWidth;
@@ -46,99 +62,75 @@
             y: canvas.height - 70,
             width: 50,
             height: 50,
-            dy: 0,
-            dx: 2,
-            gravity: 0.6,
-            jumpPower: -15,
-            isJumping: false,
-            direction: 1
+            color: 'red',
+            dx: 5
         };
 
-        const platforms = [
-            { x: 0, y: canvas.height - 20, width: canvas.width, height: 20, color: 'green', content: '' },
-            { x: 200, y: canvas.height - 100, width: 100, height: 20, color: 'green', content: '<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>' },
-            { x: 400, y: canvas.height - 180, width: 100, height: 20, color: 'green', content: '<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>' },
-            { x: 600, y: canvas.height - 260, width: 100, height: 20, color: 'green', content: '<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>' }
+        const stages = [
+            { x: 200, y: canvas.height - 150, width: 100, height: 100, color: 'green', content: '<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>' },
+            { x: 600, y: canvas.height - 200, width: 100, height: 100, color: 'blue', content: '<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>' },
+            { x: 1000, y: canvas.height - 250, width: 100, height: 100, color: 'purple', content: '<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>' }
         ];
 
-        const clouds = [
-            { x: 50, y: 50, width: 100, height: 60 },
-            { x: 300, y: 100, width: 120, height: 70 },
-            { x: 600, y: 30, width: 80, height: 50 },
-            { x: 900, y: 80, width: 110, height: 65 }
-        ];
-
-        const marioImage = new Image();
-        marioImage.src = 'https://i.imgur.com/8iapWnT.png'; // Mario image URL
+        const timeline = {
+            x: 0,
+            y: canvas.height - 50,
+            width: 3000,
+            height: 10,
+            color: 'black'
+        };
 
         function drawPlayer() {
-            ctx.drawImage(marioImage, player.x, player.y, player.width, player.height);
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
         }
 
-        function drawPlatforms() {
-            platforms.forEach(platform => {
-                ctx.fillStyle = platform.color;
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        function drawTimeline() {
+            ctx.fillStyle = timeline.color;
+            ctx.fillRect(timeline.x, timeline.y, timeline.width, timeline.height);
+        }
+
+        function drawStages() {
+            stages.forEach(stage => {
+                ctx.fillStyle = stage.color;
+                ctx.fillRect(stage.x, stage.y, stage.width, stage.height);
             });
         }
 
-        function drawClouds() {
-            ctx.fillStyle = 'white';
-            clouds.forEach(cloud => {
-                ctx.beginPath();
-                ctx.ellipse(cloud.x, cloud.y, cloud.width, cloud.height, Math.PI / 2, 0, 2 * Math.PI);
-                ctx.fill();
-            });
+        function movePlayer() {
+            player.x += player.dx;
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+            }
+            if (player.x < 0) {
+                player.x = 0;
+            }
         }
 
-        function updatePlayer() {
-            player.y += player.dy;
-            player.dy += player.gravity;
-            player.x += player.dx * player.direction;
-
-            if (player.y + player.height > canvas.height) {
-                player.y = canvas.height - player.height;
-                player.dy = 0;
-                player.isJumping = false;
-            }
-
-            if (player.x + player.width > canvas.width || player.x < 0) {
-                player.direction *= -1;
-            }
-
-            platforms.forEach(platform => {
-                if (player.y + player.height >= platform.y &&
-                    player.y + player.height <= platform.y + platform.height &&
-                    player.x + player.width > platform.x &&
-                    player.x < platform.x + platform.width) {
-                    player.y = platform.y - player.height;
-                    player.dy = 0;
-                    player.isJumping = false;
-                    if (platform.content) {
-                        cvContent.innerHTML = platform.content;
-                        cvContent.style.display = 'block';
-                    }
+        function checkInteractions() {
+            stages.forEach(stage => {
+                if (player.x < stage.x + stage.width &&
+                    player.x + player.width > stage.x &&
+                    player.y < stage.y + stage.height &&
+                    player.y + player.height > stage.y) {
+                    cvContent.innerHTML = stage.content;
+                    cvPopup.style.display = 'block';
                 }
             });
         }
 
-        function jump() {
-            if (!player.isJumping) {
-                player.dy = player.jumpPower;
-                player.isJumping = true;
-                cvContent.style.display = 'none';
-            }
+        function closePopup() {
+            cvPopup.style.display = 'none';
         }
-
-        document.addEventListener('click', jump);
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            drawClouds();
-            drawPlatforms();
+            drawTimeline();
+            drawStages();
             drawPlayer();
-            updatePlayer();
+            movePlayer();
+            checkInteractions();
 
             requestAnimationFrame(gameLoop);
         }
