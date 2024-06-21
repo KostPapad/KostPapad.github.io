@@ -1,26 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Timeline Adventure</title>
+    <title>Flappy Bird CV</title>
     <style>
-        body, html {
+        body {
+            font-family: Arial, sans-serif;
+            background: #70c5ce;
+            overflow: hidden;
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
-            background: #87CEEB;
+            margin: 0 auto;
+            background: #70c5ce;
         }
         .cv-popup {
             position: absolute;
-            top: 20px;
+            top: 50px;
             left: 50%;
             transform: translateX(-50%);
             width: 80%;
@@ -43,7 +41,7 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" width="320" height="480"></canvas>
     <div id="cvPopup" class="cv-popup">
         <button class="close-btn" onclick="closePopup()">Close</button>
         <div id="cvContent"></div>
@@ -51,91 +49,107 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const cvPopup = document.getElementById('cvPopup');
-        const cvContent = document.getElementById('cvContent');
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        let bird = new Image();
+        let bg = new Image();
+        let fg = new Image();
+        let pipeNorth = new Image();
+        let pipeSouth = new Image();
 
-        const player = {
-            x: 50,
-            y: canvas.height - 70,
-            width: 50,
-            height: 50,
-            color: 'red',
-            dx: 5
+        bird.src = "images/bird.png";
+        bg.src = "images/bg.png";
+        fg.src = "images/fg.png";
+        pipeNorth.src = "images/pipeNorth.png";
+        pipeSouth.src = "images/pipeSouth.png";
+
+        const gap = 85;
+        const constant = pipeNorth.height + gap;
+
+        let bX = 10;
+        let bY = 150;
+        let gravity = 1.5;
+
+        const fly = new Audio();
+        const scor = new Audio();
+
+        fly.src = "sounds/fly.mp3";
+        scor.src = "sounds/score.mp3";
+
+        document.addEventListener("keydown", moveUp);
+
+        function moveUp() {
+            bY -= 25;
+            fly.play();
+        }
+
+        let pipe = [];
+        pipe[0] = {
+            x: canvas.width,
+            y: 0
         };
 
-        const stages = [
-            { x: 200, y: canvas.height - 150, width: 100, height: 100, color: 'green', content: '<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>' },
-            { x: 600, y: canvas.height - 200, width: 100, height: 100, color: 'blue', content: '<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>' },
-            { x: 1000, y: canvas.height - 250, width: 100, height: 100, color: 'purple', content: '<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>' }
-        ];
+        let score = 0;
 
-        const timeline = {
-            x: 0,
-            y: canvas.height - 50,
-            width: 3000,
-            height: 10,
-            color: 'black'
-        };
+        function draw() {
+            ctx.drawImage(bg, 0, 0);
 
-        function drawPlayer() {
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-        }
+            for(let i = 0; i < pipe.length; i++) {
+                ctx.drawImage(pipeNorth, pipe[i].x, pipe[i].y);
+                ctx.drawImage(pipeSouth, pipe[i].x, pipe[i].y + constant);
 
-        function drawTimeline() {
-            ctx.fillStyle = timeline.color;
-            ctx.fillRect(timeline.x, timeline.y, timeline.width, timeline.height);
-        }
+                pipe[i].x--;
 
-        function drawStages() {
-            stages.forEach(stage => {
-                ctx.fillStyle = stage.color;
-                ctx.fillRect(stage.x, stage.y, stage.width, stage.height);
-            });
-        }
-
-        function movePlayer() {
-            player.x += player.dx;
-            if (player.x + player.width > canvas.width) {
-                player.x = canvas.width - player.width;
-            }
-            if (player.x < 0) {
-                player.x = 0;
-            }
-        }
-
-        function checkInteractions() {
-            stages.forEach(stage => {
-                if (player.x < stage.x + stage.width &&
-                    player.x + player.width > stage.x &&
-                    player.y < stage.y + stage.height &&
-                    player.y + player.height > stage.y) {
-                    cvContent.innerHTML = stage.content;
-                    cvPopup.style.display = 'block';
+                if(pipe[i].x === 125) {
+                    pipe.push({
+                        x: canvas.width,
+                        y: Math.floor(Math.random() * pipeNorth.height) - pipeNorth.height
+                    });
                 }
-            });
+
+                if(bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeNorth.width &&
+                    (bY <= pipe[i].y + pipeNorth.height || bY + bird.height >= pipe[i].y + constant) || bY + bird.height >= canvas.height - fg.height) {
+                    location.reload();
+                }
+
+                if(pipe[i].x === 5) {
+                    score++;
+                    scor.play();
+                    if(score === 5) {
+                        showPopup("<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>");
+                    }
+                    if(score === 10) {
+                        showPopup("<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>");
+                    }
+                    if(score === 15) {
+                        showPopup("<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>");
+                    }
+                }
+            }
+
+            ctx.drawImage(fg, 0, canvas.height - fg.height);
+            ctx.drawImage(bird, bX, bY);
+
+            bY += gravity;
+
+            ctx.fillStyle = "#000";
+            ctx.font = "20px Verdana";
+            ctx.fillText("Score : " + score, 10, canvas.height - 20);
+
+            requestAnimationFrame(draw);
+        }
+
+        function showPopup(content) {
+            const cvPopup = document.getElementById('cvPopup');
+            const cvContent = document.getElementById('cvContent');
+            cvContent.innerHTML = content;
+            cvPopup.style.display = 'block';
         }
 
         function closePopup() {
-            cvPopup.style.display = 'none';
+            document.getElementById('cvPopup').style.display = 'none';
         }
 
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            drawTimeline();
-            drawStages();
-            drawPlayer();
-            movePlayer();
-            checkInteractions();
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        gameLoop();
+        draw();
     </script>
 </body>
 </html>
