@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flappy Bird CV</title>
     <style>
         body {
@@ -56,11 +57,11 @@
         let pipeNorth = new Image();
         let pipeSouth = new Image();
 
-        bird.src = "images/bird.png";
-        bg.src = "images/bg.png";
-        fg.src = "images/fg.png";
-        pipeNorth.src = "images/pipeNorth.png";
-        pipeSouth.src = "images/pipeSouth.png";
+        bird.src = "https://i.imgur.com/cPRFc8Z.png"; // Placeholder bird image URL
+        bg.src = "https://i.imgur.com/N5uCbDu.png"; // Placeholder background image URL
+        fg.src = "https://i.imgur.com/lqj4XoP.png"; // Placeholder foreground image URL
+        pipeNorth.src = "https://i.imgur.com/nODKqXy.png"; // Placeholder pipeNorth image URL
+        pipeSouth.src = "https://i.imgur.com/a3GhLts.png"; // Placeholder pipeSouth image URL
 
         const gap = 85;
         const constant = pipeNorth.height + gap;
@@ -72,8 +73,8 @@
         const fly = new Audio();
         const scor = new Audio();
 
-        fly.src = "sounds/fly.mp3";
-        scor.src = "sounds/score.mp3";
+        fly.src = "https://www.soundjay.com/button/beep-07.wav"; // Placeholder fly sound URL
+        scor.src = "https://www.soundjay.com/button/beep-08.wav"; // Placeholder score sound URL
 
         document.addEventListener("keydown", moveUp);
 
@@ -93,34 +94,34 @@
         function draw() {
             ctx.drawImage(bg, 0, 0);
 
-            for(let i = 0; i < pipe.length; i++) {
+            for (let i = 0; i < pipe.length; i++) {
                 ctx.drawImage(pipeNorth, pipe[i].x, pipe[i].y);
                 ctx.drawImage(pipeSouth, pipe[i].x, pipe[i].y + constant);
 
                 pipe[i].x--;
 
-                if(pipe[i].x === 125) {
+                if (pipe[i].x === 125) {
                     pipe.push({
                         x: canvas.width,
                         y: Math.floor(Math.random() * pipeNorth.height) - pipeNorth.height
                     });
                 }
 
-                if(bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeNorth.width &&
+                if (bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeNorth.width &&
                     (bY <= pipe[i].y + pipeNorth.height || bY + bird.height >= pipe[i].y + constant) || bY + bird.height >= canvas.height - fg.height) {
                     location.reload();
                 }
 
-                if(pipe[i].x === 5) {
+                if (pipe[i].x === 5) {
                     score++;
                     scor.play();
-                    if(score === 5) {
+                    if (score === 5) {
                         showPopup("<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>");
                     }
-                    if(score === 10) {
+                    if (score === 10) {
                         showPopup("<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>");
                     }
-                    if(score === 15) {
+                    if (score === 15) {
                         showPopup("<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>");
                     }
                 }
@@ -149,7 +150,9 @@
             document.getElementById('cvPopup').style.display = 'none';
         }
 
-        draw();
+        window.onload = function () {
+            draw();
+        };
     </script>
 </body>
 </html>
