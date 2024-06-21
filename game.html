@@ -17,13 +17,26 @@
             display: block;
             background: #87CEEB;
         }
+        .cv-content {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div id="cvContent" class="cv-content"></div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const cvContent = document.getElementById('cvContent');
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -33,7 +46,6 @@
             y: canvas.height - 70,
             width: 50,
             height: 50,
-            color: 'red',
             dy: 0,
             dx: 2,
             gravity: 0.6,
@@ -43,10 +55,10 @@
         };
 
         const platforms = [
-            { x: 0, y: canvas.height - 20, width: canvas.width, height: 20, color: 'green' },
-            { x: 200, y: canvas.height - 100, width: 100, height: 20, color: 'green' },
-            { x: 400, y: canvas.height - 180, width: 100, height: 20, color: 'green' },
-            { x: 600, y: canvas.height - 260, width: 100, height: 20, color: 'green' }
+            { x: 0, y: canvas.height - 20, width: canvas.width, height: 20, color: 'green', content: '' },
+            { x: 200, y: canvas.height - 100, width: 100, height: 20, color: 'green', content: '<h2>About Me</h2><p>Biologist, PhD in Immunology, with experience in diagnostic technologies...</p>' },
+            { x: 400, y: canvas.height - 180, width: 100, height: 20, color: 'green', content: '<h2>Experience</h2><p>Sysmex Europe - Product Manager EMEA Clinical Flow Cytometry...</p>' },
+            { x: 600, y: canvas.height - 260, width: 100, height: 20, color: 'green', content: '<h2>Skills and Certifications</h2><p>Product Launch, In Vitro Diagnostics (IVD), Negotiation...</p>' }
         ];
 
         const clouds = [
@@ -102,6 +114,10 @@
                     player.y = platform.y - player.height;
                     player.dy = 0;
                     player.isJumping = false;
+                    if (platform.content) {
+                        cvContent.innerHTML = platform.content;
+                        cvContent.style.display = 'block';
+                    }
                 }
             });
         }
@@ -110,6 +126,7 @@
             if (!player.isJumping) {
                 player.dy = player.jumpPower;
                 player.isJumping = true;
+                cvContent.style.display = 'none';
             }
         }
 
